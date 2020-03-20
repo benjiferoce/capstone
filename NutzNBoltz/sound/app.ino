@@ -8,6 +8,7 @@
 #include <Wire.h>
 #include <PubSubClient.h>
 #include <Adafruit_Sensor.h>
+
 #include "secrets.h"
 
 #define PIN_ANALOG_IN A1
@@ -28,8 +29,13 @@ unsigned int amp = 0;
 void setup() 
 {
    Serial.begin(115200);
-   while(!Serial){;}
+   while(!Serial)
+   {
+      ;
+   }
+
    setup_wifi();
+
    client.setServer(mqtt_server, 1883);
    client.setCallback(callback);
    pinMode(A1, INPUT);
@@ -71,17 +77,17 @@ void reconnect()
 {
   while(!client.connected()) 
   {
-    Serial.print("Attempting MQTT connection...");
+    Serial.print("MQTT connect attempt...");
     if (client.connect("ESP8266Client")) 
     {
       Serial.println("connected");
-      client.subscribe("esp32/output");
+      client.subscribe("esp32/sound");
     } 
     else 
     {
       Serial.print("failed, rc=");
       Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
+      Serial.println(" wait 5 sec and try again");
       delay(5000);
     }
   }
@@ -96,7 +102,6 @@ void loop()
    client.loop();
    unsigned long start= millis(); 
    unsigned int peak = 0;   
- 
    unsigned int max = 0;
    unsigned int min = 1024;
  
@@ -116,8 +121,8 @@ void loop()
       }
    }
    amp = max - min; 
-   double decibels = 100 * ((amp * 5.0) / 1024);  
-   char tempString[8];
+   int decibels = 100 * ((amp * 5.0) / 1024);  
+   char tempString[2];
    dtostrf(decibels, 1, 2, tempString);
    Serial.print("Sound: ");
    Serial.println(tempString);
